@@ -1,0 +1,15 @@
+{
+  "mcp": {
+    "servers": {
+      "github": {
+        "command": "npx",
+        "args": [
+          "@mcp/github@latest"
+        ],
+        "env": {
+          "GITHUB_TOKEN": "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"
+        }
+      }
+    }
+  }
+}
