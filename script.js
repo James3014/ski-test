@@ -426,11 +426,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startTest(questionSource) {
-        if (questionSource.length < 20) {
-            showNotification('&#128681;', '無法開始', `該範圍題目不足20題 (${questionSource.length}/20)，請擴大篩選範圍。`);
+        const desiredCountStr = prompt(`此範圍共有 ${questionSource.length} 題，您想測驗幾題？`, Math.min(questionSource.length, 20));
+        if (desiredCountStr === null) return; // User cancelled
+
+        const desiredCount = parseInt(desiredCountStr, 10);
+
+        if (isNaN(desiredCount) || desiredCount <= 0) {
+            showNotification('&#128681;', '輸入無效', '請輸入一個大於 0 的有效數字。');
             return;
         }
-        testState.questions = [...questionSource].sort(() => 0.5 - Math.random()).slice(0, 20);
+
+        if (questionSource.length < desiredCount) {
+            showNotification('&#128681;', '題目不足', `該範圍題目只有 ${questionSource.length} 題，無法進行 ${desiredCount} 題的測驗。`);
+            return;
+        }
+
+        testState.questions = [...questionSource].sort(() => 0.5 - Math.random()).slice(0, desiredCount);
         testState.userAnswers = [];
         testState.currentIndex = 0;
         switchMode('test');
@@ -456,9 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showResults() {
         const correctCount = testState.userAnswers.filter((ans, i) => ans.selected === testState.questions[i].answer).length;
-        testState.finalScore = correctCount * 5;
+        const totalQuestions = testState.questions.length;
+        testState.finalScore = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
         finalScoreEl.textContent = testState.finalScore;
-        finalSummaryEl.textContent = `您答對了 ${correctCount} 題，答錯 ${20 - correctCount} 題。`;
+        finalSummaryEl.textContent = `您答對了 ${correctCount} 題，答錯 ${totalQuestions - correctCount} 題。`;
         document.getElementById('leaderboard-form-container').style.display = 'block';
         leaderboardForm.reset();
         renderResults();
